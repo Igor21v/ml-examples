@@ -1,3 +1,42 @@
+async function parabola() {
+    const LEARNING_RATE = 0.00001;
+    const OPTIMIZER = tf.train.sgd(LEARNING_RATE);
+    const INPUTS = [];
+    for (let i = 1; i <= 20; i++) {
+        INPUTS.push(i);
+    }
+    const OUTPUT = [];
+    INPUTS.forEach((item) => {
+        OUTPUT.push(item ** 2);
+    });
+    console.log(OUTPUT);
+    const model = tf.sequential();
+    model.add(tf.layers.dense({ units: 100, inputShape: [1], activation: 'relu' }));
+    model.add(tf.layers.dense({ units: 100, activation: 'relu' }));
+    model.add(tf.layers.dense({ units: 1 }));
+    model.summary();
+    model.compile({ loss: 'meanSquaredError', optimizer: OPTIMIZER });
+    // Generate some synthetic data for training. (y = 2x - 1)
+    const xs = tf.tensor1d(INPUTS);
+    const ys = tf.tensor1d(OUTPUT);
+    // validationSplit: 0.15 - разделение на валидационные и обучающие данные
+    // batchSize - размер минипакета (количество обработанных точек перед обновлением весов)
+    // shuffle - перемешать данные
+    const result = await model.fit(xs, ys, {
+        epochs: 4000,
+        batchSize: 2,
+        shuffle: true /* callbacks: { onEpochEnd: logProgress } */,
+    });
+    const search = 7;
+    document.getElementById('micro-out-div').innerText = model.predict(tf.tensor1d([search])).dataSync();
+    const output = model.predict(tf.tensor1d([search]));
+    output.print();
+    console.log('Avarage error loss ' + Math.sqrt(result.history.loss[result.history.loss.length - 1]));
+    /* console.log('Avarage error loss ' + Math.sqrt(result.history.val_loss[result.history.val_loss.length - 1])); */
+}
+
+parabola();
+
 async function leaner() {
     const LEARNING_RATE = 0.01;
     const model = tf.sequential();
@@ -13,7 +52,7 @@ async function leaner() {
     await model.save('downloads://my-model');
 }
 
-leaner();
+/* leaner(); */
 
 function polinom() {
     // Fit a quadratic function by learning the coefficients a, b, c.
@@ -45,3 +84,7 @@ function polinom() {
 }
 
 /* polinom(); */
+
+function logProgress(epoch, logs) {
+    console.log('Data for epoch ' + epoch, Math.sqrt(logs.loss));
+}
