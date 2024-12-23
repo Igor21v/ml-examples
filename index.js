@@ -1,21 +1,16 @@
 async function leaner() {
-    // Create a simple model.
+    const LEARNING_RATE = 0.01;
     const model = tf.sequential();
     model.add(tf.layers.dense({ units: 1, inputShape: [1] }));
-
-    // Prepare the model for training: Specify the loss and the optimizer.
-    model.compile({ loss: 'meanSquaredError', optimizer: 'sgd' });
-
+    model.compile({ loss: 'meanSquaredError', optimizer: tf.train.sgd(LEARNING_RATE) });
     // Generate some synthetic data for training. (y = 2x - 1)
-    const xs = tf.tensor2d([-1, 0, 1, 2, 3, 4, 5], [7, 1]);
-    const ys = tf.tensor2d([-3, -1, 1, 3, 5, 7, 9], [7, 1]);
-
-    // Train the model using the data.
-    await model.fit(xs, ys, { epochs: 250 });
-
-    // Use the model to do inference on a data point the model hasn't seen.
-    // Should print approximately 39.
-    document.getElementById('micro-out-div').innerText = model.predict(tf.tensor2d([23], [1, 1])).dataSync();
+    const xs = tf.tensor1d([-1, 0, 1, 2, 3, 4, 5]);
+    const ys = tf.tensor1d([-3, -1, 1, 3, 5, 7, 9]);
+    await model.fit(xs, ys, { epochs: 300 });
+    document.getElementById('micro-out-div').innerText = model.predict(tf.tensor1d([4])).dataSync();
+    const output = model.predict(tf.tensor1d([3]));
+    output.print();
+    await model.save('downloads://my-model');
 }
 
 leaner();
@@ -49,4 +44,4 @@ function polinom() {
     });
 }
 
-polinom();
+/* polinom(); */
