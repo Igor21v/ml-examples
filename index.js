@@ -1,3 +1,52 @@
+async function leaner() {
+    const LEARNING_RATE = 0.01;
+    const model = tf.sequential();
+    model.add(tf.layers.dense({ units: 1, inputShape: [1] }));
+    model.compile({ loss: 'meanSquaredError', optimizer: tf.train.sgd(LEARNING_RATE) });
+    const xsArr = [-1, 0, 1, 2, 3, 4, 5];
+    const xyArr = [-3, -1, 1, 3, 5, 7, 9];
+    // Generate some synthetic data for training. (y = 2x - 1)
+    const xs = tf.tensor1d(xsArr);
+    const ys = tf.tensor1d(xyArr);
+    await model.fit(xs, ys, {
+        epochs: 300,
+    });
+    const x1 = -1;
+    const y1 = model.predict(tf.tensor1d([x1])).dataSync();
+    const x2 = 5;
+    const y2 = model.predict(tf.tensor1d([x2])).dataSync();
+
+    /*  document.getElementById('micro-out-div').innerText = model.predict(tf.tensor1d([4])).dataSync();
+    const output = model.predict(tf.tensor1d([3]));
+    output.print(); */
+
+    var trace1 = {
+        x: xsArr,
+        y: xyArr,
+        mode: 'markers',
+        name: 'Входные данные',
+    };
+
+    var trace2 = {
+        x: [+x1, +x2],
+        y: [+y1, +y2],
+        mode: 'lines',
+        name: 'Предсказание модели',
+    };
+
+    var data = [trace1, trace2];
+
+    var layout = {
+        title: {
+            text: 'Оценка модели',
+        },
+    };
+
+    Plotly.newPlot('myDiv', data, layout);
+}
+
+leaner();
+
 async function parabola() {
     const LEARNING_RATE = 0.00001;
     const OPTIMIZER = tf.train.sgd(LEARNING_RATE);
@@ -35,24 +84,7 @@ async function parabola() {
     /* console.log('Avarage error loss ' + Math.sqrt(result.history.val_loss[result.history.val_loss.length - 1])); */
 }
 
-parabola();
-
-async function leaner() {
-    const LEARNING_RATE = 0.01;
-    const model = tf.sequential();
-    model.add(tf.layers.dense({ units: 1, inputShape: [1] }));
-    model.compile({ loss: 'meanSquaredError', optimizer: tf.train.sgd(LEARNING_RATE) });
-    // Generate some synthetic data for training. (y = 2x - 1)
-    const xs = tf.tensor1d([-1, 0, 1, 2, 3, 4, 5]);
-    const ys = tf.tensor1d([-3, -1, 1, 3, 5, 7, 9]);
-    await model.fit(xs, ys, { epochs: 300 });
-    document.getElementById('micro-out-div').innerText = model.predict(tf.tensor1d([4])).dataSync();
-    const output = model.predict(tf.tensor1d([3]));
-    output.print();
-    await model.save('downloads://my-model');
-}
-
-/* leaner(); */
+/* parabola(); */
 
 function polinom() {
     // Fit a quadratic function by learning the coefficients a, b, c.
