@@ -1,22 +1,32 @@
-<!-- Make sure your page supports utf-8 characterset. -->
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<!-- Load TensorFlow.js. This is required to use the qna model. -->
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-<!-- Load the qna model. -->
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/qna"></script>
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+    <header>
+        <!-- Make sure your page supports utf-8 characterset. -->
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <!-- Load TensorFlow.js. This is required to use the qna model. -->
+        <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+        <!-- Load the qna model. -->
+        <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/qna"></script>
+        <!-- Place your code in the script tag below. You can also use an external .js file -->
+        <script>
+            // Notice there is no 'import' statement. 'qna' and 'tf' is
+            // available on the index-page because of the script tag above.
 
-<!-- Place your code in the script tag below. You can also use an external .js file -->
-<script>
-  // Notice there is no 'import' statement. 'qna' and 'tf' is
-  // available on the index-page because of the script tag above.
-
-  // Load the model.
-  const passage = "I like bananas.";
-  const question = "What do I like?";
-  qna.load().then((model) => {
-    // Find the answers
-    model.findAnswers(question, passage).then((answers) => {
-      console.log("Answers: ", answers);
-    });
-  });
-</script>
+            // Load the model.
+            const passage =
+                'I live in a small house. It has two bedrooms, a kitchen, a bathroom, and a living room. My bedroom is very cozy. I have a bed, a desk, and a small bookshelf. The kitchen is where we cook our meals. It has a big refrigerator and a stove. The living room is very comfortable, with a big sofa and a TV. I love my house because it is small but very nice.';
+            const question = 'How many bedrooms do I have in my house?';
+            const passage2 = 'I live in Bratsk';
+            const question2 = 'Where do I live?';
+            qna.load().then((model) => {
+                // Find the answers
+                model.findAnswers(question2, passage2).then((answers) => {
+                    console.log('Answers: ', answers);
+                });
+            });
+        </script>
+    </header>
+    <body>
+        QnA
+    </body>
+</html>
