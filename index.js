@@ -49,10 +49,10 @@ async function parabola() {
     // batchSize - размер минипакета (количество обработанных точек перед обновлением весов)
     // shuffle - перемешать данные
     const result = await model.fit(xs, ys, {
-        epochs: 2000,
+        epochs: 1000,
         batchSize: 2,
         shuffle: true,
-        callbacks: { onEpochEnd: logProgress },
+        /*  callbacks: { onEpochEnd: logProgress }, */
     });
     const search = [];
     for (let i = -19.5; i <= 20; i++) {
@@ -69,7 +69,7 @@ async function parabola() {
     createGraph(INPUTS, OUTPUT, search, predictions);
 }
 
-/* parabola(); */
+parabola();
 
 function polinom() {
     // Fit a quadratic function by learning the coefficients a, b, c.
@@ -79,7 +79,7 @@ function polinom() {
     }
     const outputs = [];
     inputs.forEach((x) => {
-        outputs.push(x * x + 2 * x + 1);
+        outputs.push(3 * x * x + 5 * x + 10);
     });
     const xs = tf.tensor1d(inputs);
     const ys = tf.tensor1d(outputs);
@@ -115,7 +115,7 @@ function polinom() {
     createGraph(inputs, outputs, search, preds);
 }
 
-polinom();
+/* polinom(); */
 
 function createGraph(xInp, yInp, xPred, yPred) {
     var trace1 = {
