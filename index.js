@@ -1,80 +1,144 @@
-// Урок 4.4.2 Индуса по TF
-
-import { TRAINING_DATA } from 'https://storage.googleapis.com/jmstore/TensorFlowJS/EdX/TrainingData/real-estate-data.js';
-
-const INPUTS = TRAINING_DATA.inputs;
-const OUTPUTS = TRAINING_DATA.outputs;
-
-// Перемешать так чтобы входные и выходные соответствовали друг другу
-tf.util.shuffleCombo(INPUTS, OUTPUTS);
-
-const INPUTS_TENSOR = tf.tensor2d(INPUTS);
-const OUTPUTS_TENSOR = tf.tensor1d(OUTPUTS);
-
-function normalize(tensor, min, max) {
-    const result = tf.tidy(function () {
-        const MIN_VALUES = min || tf.min(tensor, 0);
-        const MAX_VALUES = max || tf.max(tensor, 0);
-        const TENSOR_SUBTRACT_MIN_VALUE = tf.sub(tensor, MIN_VALUES);
-        const RANGE_SIZE = tf.sub(MAX_VALUES, MIN_VALUES);
-        const NORMALIZED_VALUES = tf.div(TENSOR_SUBTRACT_MIN_VALUE, RANGE_SIZE);
-        return { NORMALIZED_VALUES, MIN_VALUES, MAX_VALUES };
-    });
-    return result;
-}
-
-const FEATURE_RESULTS = normalize(INPUTS_TENSOR);
-
-console.log('Normalized Values: ');
-FEATURE_RESULTS.NORMALIZED_VALUES.print();
-console.log('Min values: ');
-FEATURE_RESULTS.MIN_VALUES.print();
-console.log('Max values: ');
-FEATURE_RESULTS.MAX_VALUES.print();
-
-INPUTS_TENSOR.dispose();
-
-const model = tf.sequential();
-
-model.add(tf.layers.dense({ inputShape: [2], units: 1 }));
-
-model.summary();
-
-train().then(() => evaluate());
-
-async function train() {
+async function leaner() {
     const LEARNING_RATE = 0.01;
-
-    model.compile({
-        optimizer: tf.train.sgd(LEARNING_RATE),
-        loss: 'meanSquaredError',
+    const model = tf.sequential();
+    model.add(tf.layers.dense({ units: 1, inputShape: [1] }));
+    model.compile({ loss: 'meanSquaredError', optimizer: tf.train.sgd(LEARNING_RATE) });
+    const xArr = [-1, 0, 1, 2, 3, 4, 5];
+    const yArr = [-3, -1, 1, 3, 5, 7, 9];
+    // Generate some synthetic data for training. (y = 2x - 1)
+    const xs = tf.tensor1d(xArr);
+    const ys = tf.tensor1d(yArr);
+    await model.fit(xs, ys, {
+        epochs: 300,
     });
+    const x1 = -1;
+    const y1 = model.predict(tf.tensor1d([x1])).dataSync();
+    const x2 = 5;
+    const y2 = model.predict(tf.tensor1d([x2])).dataSync();
 
-    let results = await model.fit(FEATURE_RESULTS.NORMALIZED_VALUES, OUTPUTS_TENSOR, {
-        validationSplit: 0.15,
-        shuffle: true,
-        batchSize: 64,
-        epochs: 10,
-    });
-    OUTPUTS_TENSOR.dispose();
-    FEATURE_RESULTS.NORMALIZED_VALUES.dispose();
-
-    console.log('Avarage error loss: ' + Math.sqrt(results.history.loss[results.history.loss.length - 1]));
-    console.log('Avarage validation error loss: ' + Math.sqrt(results.history.val_loss[results.history.val_loss.length - 1]));
+    createGraph(xArr, yArr, [+x1, +x2], [+y1, +y2]);
+    /*  document.getElementById('micro-out-div').innerText = model.predict(tf.tensor1d([4])).dataSync();
+    const output = model.predict(tf.tensor1d([3]));
+    output.print(); */
 }
 
-function evaluate() {
-    tf.tidy(function () {
-        let newInput = normalize(tf.tensor2d([[750, 1]]), FEATURE_RESULTS.MIN_VALUES, FEATURE_RESULTS.MAX_VALUES);
-        console.log('Tensors:');
-        FEATURE_RESULTS.MIN_VALUES.print();
-        FEATURE_RESULTS.MAX_VALUES.print();
-        let output = model.predict(newInput.NORMALIZED_VALUES);
-        console.log('PREDICT:');
-        output.print();
-    });
-    FEATURE_RESULTS.MAX_VALUES.dispose();
-    FEATURE_RESULTS.MIN_VALUES.dispose();
+/* leaner(); */
 
-    console.log('Num tensors: ' + tf.memory().numTensors);
+async function parabola() {
+    const LEARNING_RATE = 0.00001;
+    const OPTIMIZER = tf.train.sgd(LEARNING_RATE);
+    const INPUTS = [];
+    for (let i = -20; i <= 20; i++) {
+        INPUTS.push(i);
+    }
+    const OUTPUT = [];
+    INPUTS.forEach((item) => {
+        OUTPUT.push(item ** 2);
+    });
+    console.log(OUTPUT);
+    const model = tf.sequential();
+    model.add(tf.layers.dense({ units: 100, inputShape: [1], activation: 'relu' }));
+    model.add(tf.layers.dense({ units: 100, activation: 'relu' }));
+    model.add(tf.layers.dense({ units: 1 }));
+    model.summary();
+    model.compile({ loss: 'meanSquaredError', optimizer: OPTIMIZER });
+    // Generate some synthetic data for training. (y = 2x - 1)
+    const xs = tf.tensor1d(INPUTS);
+    const ys = tf.tensor1d(OUTPUT);
+    // validationSplit: 0.15 - разделение на валидационные и обучающие данные
+    // batchSize - размер минипакета (количество обработанных точек перед обновлением весов)
+    // shuffle - перемешать данные
+    const result = await model.fit(xs, ys, {
+        epochs: 2000,
+        batchSize: 2,
+        shuffle: true,
+        callbacks: { onEpochEnd: logProgress },
+    });
+    const search = [];
+    for (let i = -19.5; i <= 20; i++) {
+        search.push(i);
+    }
+    const predictions = model.predict(tf.tensor1d(search)).dataSync();
+    document.getElementById('micro-out-div').innerText = predictions;
+    console.log('Avarage error loss ' + Math.sqrt(result.history.loss[result.history.loss.length - 1]));
+    console.log('Avarage error loss ' + Math.sqrt(result.history.val_loss));
+    function logProgress(epoch, logs) {
+        console.log('Data for epoch ' + epoch, Math.sqrt(logs.loss));
+    }
+
+    createGraph(INPUTS, OUTPUT, search, predictions);
+}
+
+/* parabola(); */
+
+function polinom() {
+    // Fit a quadratic function by learning the coefficients a, b, c.
+    const inputs = [];
+    for (let i = -20; i <= 20; i++) {
+        inputs.push(i);
+    }
+    const outputs = [];
+    inputs.forEach((x) => {
+        outputs.push(x * x + 2 * x + 1);
+    });
+    const xs = tf.tensor1d(inputs);
+    const ys = tf.tensor1d(outputs);
+
+    const a = tf.scalar(Math.random()).variable();
+    const b = tf.scalar(Math.random()).variable();
+    const c = tf.scalar(Math.random()).variable();
+
+    // y = a * x^2 + b * x + c.
+    const f = (x) => a.mul(x.square()).add(b.mul(x)).add(c);
+    const loss = (pred, label) => pred.sub(label).square().mean();
+
+    const learningRate = 0.00001;
+    const optimizer = tf.train.sgd(learningRate);
+
+    // Train the model.
+    for (let i = 0; i < 1000; i++) {
+        optimizer.minimize(() => loss(f(xs), ys));
+    }
+
+    // Make predictions.
+    console.log(`a: ${a.dataSync()}, b: ${b.dataSync()}, c: ${c.dataSync()}`);
+
+    const search = [];
+    for (let i = -19.5; i <= 20; i++) {
+        search.push(i);
+    }
+    const searchTensor = tf.tensor1d(search);
+    const preds = f(searchTensor).dataSync();
+    preds.forEach((pred, i) => {
+        console.log(`x: ${i}, pred: ${pred}`, `label: ${outputs[i]}`);
+    });
+    createGraph(inputs, outputs, search, preds);
+}
+
+polinom();
+
+function createGraph(xInp, yInp, xPred, yPred) {
+    var trace1 = {
+        x: xInp,
+        y: yInp,
+        mode: 'markers',
+        name: 'Входные данные',
+    };
+
+    var trace2 = {
+        x: xPred,
+        y: yPred,
+        mode: 'lines',
+        name: 'Предсказание модели',
+    };
+
+    var data = [trace1, trace2];
+
+    var layout = {
+        title: {
+            text: 'Оценка модели',
+        },
+    };
+
+    Plotly.newPlot('myDiv', data, layout);
 }
