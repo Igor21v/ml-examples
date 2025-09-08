@@ -37,7 +37,7 @@ async function parabola() {
     });
     console.log(OUTPUT);
     const model = tf.sequential();
-    model.add(tf.layers.dense({ units: 100, inputShape: [1], activation: 'relu' }));
+    model.add(tf.layers.dense({ units: 100, inputShape: [1], activation: 'linear' }));
     model.add(tf.layers.dense({ units: 100, activation: 'relu' }));
     model.add(tf.layers.dense({ units: 1 }));
     model.summary();
