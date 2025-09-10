@@ -25,40 +25,56 @@ async function leaner() {
 /* leaner(); */
 
 async function parabola() {
-    const LEARNING_RATE = 0.00001;
+    const LEARNING_RATE = 0.0001;
     const OPTIMIZER = tf.train.sgd(LEARNING_RATE);
     const INPUTS = [];
-    for (let i = -20; i <= 20; i++) {
-        INPUTS.push(i);
+    for (let i = -20; i <= 21; i++) {
+        if (i < 10) {
+            INPUTS.push([i, 0]);
+        } else {
+            INPUTS.push([i, 20]);
+        }
     }
+    console.log(INPUTS);
     const OUTPUT = [];
-    INPUTS.forEach((item) => {
-        OUTPUT.push(item ** 2);
+    INPUTS.forEach((item, index) => {
+        OUTPUT.push(INPUTS[index][0] + INPUTS[index][1]);
     });
     console.log(OUTPUT);
     const model = tf.sequential();
-    model.add(tf.layers.dense({ units: 100, inputShape: [1], activation: 'linear' }));
-    model.add(tf.layers.dense({ units: 100, activation: 'relu' }));
+    model.add(tf.layers.dense({ units: 1, inputShape: 2, activation: 'linear' }));
     model.add(tf.layers.dense({ units: 1 }));
     model.summary();
     model.compile({ loss: 'meanSquaredError', optimizer: OPTIMIZER });
     // Generate some synthetic data for training. (y = 2x - 1)
-    const xs = tf.tensor1d(INPUTS);
+    const xs = tf.tensor2d(INPUTS);
+    console.log(xs);
     const ys = tf.tensor1d(OUTPUT);
+    /*     console.log('ДО');
+    console.log(xs);
+    console.log('После');
+    console.log(xs.reshape([2, -1])); */
     // validationSplit: 0.15 - разделение на валидационные и обучающие данные
     // batchSize - размер минипакета (количество обработанных точек перед обновлением весов)
     // shuffle - перемешать данные
     const result = await model.fit(xs, ys, {
-        epochs: 1000,
+        epochs: 100,
         batchSize: 2,
         shuffle: true,
         /*  callbacks: { onEpochEnd: logProgress }, */
     });
+    /*     for (let i = 0; i < model.getWeights().length; i++) {
+        console.log(model.getWeights()[i].dataSync());
+    } */
     const search = [];
     for (let i = -19.5; i <= 20; i++) {
-        search.push(i);
+        if (i < 10) {
+            search.push([i, 0]);
+        } else {
+            search.push([i, 20]);
+        }
     }
-    const predictions = model.predict(tf.tensor1d(search)).dataSync();
+    const predictions = model.predict(tf.tensor2d(search)).dataSync();
     document.getElementById('micro-out-div').innerText = predictions;
     console.log('Avarage error loss ' + Math.sqrt(result.history.loss[result.history.loss.length - 1]));
     console.log('Avarage error loss ' + Math.sqrt(result.history.val_loss));
@@ -66,7 +82,9 @@ async function parabola() {
         console.log('Data for epoch ' + epoch, Math.sqrt(logs.loss));
     }
 
-    createGraph(INPUTS, OUTPUT, search, predictions);
+    const inpG = INPUTS.map((item) => item[0]);
+    const searchG = search.map((item) => item[0]);
+    createGraph(inpG, OUTPUT, searchG, predictions);
 }
 
 parabola();

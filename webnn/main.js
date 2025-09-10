@@ -47,7 +47,7 @@ async function runModel(preprocessedData) {
 
     // Configure WebNN.
     const modelPath = './mobilenetv2-10.onnx';
-    const devicePreference = 'npu'; // Other options include "npu" and "cpu" "gpu".
+    const devicePreference = 'gpu'; // Other options include "npu" and "cpu" "gpu".
     const options = {
         executionProviders: [{ name: 'webnn', deviceType: devicePreference, powerPreference: 'default' }],
         freeDimensionOverrides: { batch: 1, channels: 3, height: 224, width: 224 },
